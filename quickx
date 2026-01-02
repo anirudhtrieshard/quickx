@@ -1,0 +1,94 @@
+#!/bin/bash
+
+# quickx - Toggle file receiver service
+# Usage: quickx [start|stop|status|restart]
+
+QUICKX_NGINX_SITE="/etc/nginx/sites-enabled/quickx"
+QUICKX_NGINX_AVAILABLE="/etc/nginx/sites-available/quickx"
+SERVICE_NAME="file-receiver"
+
+case "$1" in
+    start)
+        echo "Starting quickx file receiver..."
+
+        # Enable nginx site
+        if [ ! -L "$QUICKX_NGINX_SITE" ]; then
+            sudo ln -s "$QUICKX_NGINX_AVAILABLE" "$QUICKX_NGINX_SITE"
+            echo "✓ Enabled nginx configuration"
+        fi
+
+        # Reload nginx
+        sudo systemctl reload nginx
+        echo "✓ Reloaded nginx"
+
+        # Start file-receiver service
+        sudo systemctl start "$SERVICE_NAME"
+        echo "✓ Started file-receiver service"
+
+        echo ""
+        echo "quickx is now running on http://localhost:8080"
+        echo "Share this via your Cloudflare tunnel when ready!"
+        ;;
+
+    stop)
+        echo "Stopping quickx file receiver..."
+
+        # Stop file-receiver service
+        sudo systemctl stop "$SERVICE_NAME"
+        echo "✓ Stopped file-receiver service"
+
+        # Disable nginx site
+        if [ -L "$QUICKX_NGINX_SITE" ]; then
+            sudo rm "$QUICKX_NGINX_SITE"
+            echo "✓ Disabled nginx configuration"
+        fi
+
+        # Reload nginx
+        sudo systemctl reload nginx
+        echo "✓ Reloaded nginx"
+
+        echo ""
+        echo "quickx has been stopped"
+        ;;
+
+    restart)
+        echo "Restarting quickx file receiver..."
+        $0 stop
+        sleep 1
+        $0 start
+        ;;
+
+    status)
+        echo "quickx status:"
+        echo ""
+
+        # Check nginx site
+        if [ -L "$QUICKX_NGINX_SITE" ]; then
+            echo "✓ nginx site: enabled"
+        else
+            echo "✗ nginx site: disabled"
+        fi
+
+        # Check service
+        if systemctl is-active --quiet "$SERVICE_NAME"; then
+            echo "✓ file-receiver: running"
+            echo ""
+            echo "quickx is available at http://localhost:8080"
+        else
+            echo "✗ file-receiver: stopped"
+            echo ""
+            echo "quickx is not running"
+        fi
+        ;;
+
+    *)
+        echo "Usage: quickx [start|stop|status|restart]"
+        echo ""
+        echo "Commands:"
+        echo "  start    - Start the file receiver on port 8080"
+        echo "  stop     - Stop the file receiver"
+        echo "  status   - Check if quickx is running"
+        echo "  restart  - Restart the file receiver"
+        exit 1
+        ;;
+esac
