@@ -111,10 +111,10 @@ Edit `/etc/nginx/sites-available/quickx`:
 listen 8080;  # Change to your desired port
 ```
 
-## Use with Cloudflare Tunnel
+## Use with Cloudflare Tunnel [Example]
 
 1. Start quickx: `quickx start`
-2. Create/start your Cloudflare tunnel pointing to `localhost:8080`
+2. Create/start your Cloudflare tunnel pointing to `localhost:8080` [NOTE: Use your own domains for long term use, this is just a suggestion / testing idea]
 3. Share the Cloudflare URL with others
 4. When done: `quickx stop`
 
